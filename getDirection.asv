@@ -1,0 +1,36 @@
+function [cosA, sinA] = getDirection(pX,pY, strokePoints, U, V, go_normal)
+
+if go_normal
+    cosA = -U(pX,pY);
+    sinA = V(pX,pY); %normally to gradient
+else
+    sinA = U(pX,pY);
+    cosA = V(pX,pY); %collinearly to gradient
+end
+
+dX = 0; dY = 0;
+
+if(length(strokePoints.Xs) > 1) %if not a single point, get previous direction
+    dX = pX - strokePoints.Xs(end-1);
+    dY = pY - strokePoints.Ys(end-1);
+    
+    %get scalar product
+    sc = cosA*dX + sinA*dY;
+    if sc < 0 %if in opposite direction
+        cosA = -cosA;
+        sinA = -sinA;
+    end
+end
+
+if dX ~= 0 && dY ~= 0
+%small perturbation
+pf = pi/6; %perturbation factor, rad
+alp = atan2(sinA,cosA);
+da = 2*pf*rand - pf;
+if strokeStructure.length > 0
+    da = da/strokeStructure.length;
+end
+cosA = cos(alp + da);
+sinA = sin(alp + da);
+
+end
