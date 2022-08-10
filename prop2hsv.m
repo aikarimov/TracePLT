@@ -60,7 +60,7 @@ for i = 1:Npts
     [~,I] = sort(dst,1,'ascend');
 
     %assign weights
-    d = 1./dst(I(1:K));
+    d = 1./(dst(I(1:K)) + 1e-4);
     D = diag(d);
 
     hsvcolcur = zeros(1,3);
@@ -84,8 +84,8 @@ for i = 1:Npts
 
     for j = 1:3
         V = W(I(1:K),j);
-        h = (E'*E)\(E'*V); %OLS
-        %h = (E'*D*E)\(E'*D*V); %WLS
+        %h = (E'*E)\(E'*V); %OLS
+        h = (E'*D*E + 1e-16)\(E'*D*V); %WLS
         %predict proportion
         p = 0;
         x = props(i,:);

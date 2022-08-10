@@ -1,8 +1,8 @@
 function [props, cls, hsvnew] = PredictProportions(varargin)
 %
-% [props, cls] = PredictProportions(hsvcol)
+% [props, cls, hsvnew] = PredictProportions(hsvcol)
 
-% [props, cls] = PredictProportions(hsvcol,Ycell, Wcell)
+% [props, cls, hsvnew] = PredictProportions(hsvcol,Ycell, Wcell)
 %
 % hsvcol is HSV color, or N x 3 matrix of hsv colors
 % Ycell, Wcell are cell arrays from ModelTable600.xls
@@ -18,10 +18,9 @@ function [props, cls, hsvnew] = PredictProportions(varargin)
 % if HSV is matrix, props and cls are N x 3 and N x 1, respectively
 tablename = 'ModelTable600.xls';
 
-
 K = 20;
 
-tol = 0.0; %tolerance of color error in rgb
+tol = 0.0; %tolerance of color error in hsv
 
 sat = @(x) min(max(x, 0), 1); %saturation function
 
@@ -200,8 +199,11 @@ for i = 1:Nhsv
 %         rgbcur = hsv2rgb(hsvcolcur);
 %         rgbinv = hsv2rgb(hsvinv);
 %         err = sqrt( (rgbcur - rgbinv)*(rgbcur - rgbinv)');
-
-        err = sqrt( (hsvcolcur - hsvinv)*(hsvcolcur - hsvinv)');
+        h_alt = [hsvinv(1),hsvinv(1) - 1 ]; %alternative versions of h
+        [~,I] = min(abs(h_alt - hsvcolcur(1)));
+        hsvinv2 = hsvinv;
+        hsvinv2(1) = h_alt(I);
+        err = sqrt( (hsvcolcur - hsvinv2)*(hsvcolcur - hsvinv2)');
 
         if ctr < 2 
             %if the values are calculated for the first time

@@ -133,7 +133,6 @@ for kk = 1:TotalIter
 %             i = ictr;
 %             j = jctr;
 
-
             if (err(i,j) > pixTol) || canvas2(i,j) == 0
                 %если в пикселе высокая погрешность
                 pX = i; pY = j; %prev X,Y
@@ -248,7 +247,7 @@ for kk = 1:TotalIter
         %after each row iteration, show canvas
         figure(2);
         imshow(uint8(canvas));title('Canvas');
-% 
+
         figure(3);
         imshow(canvas2);title('Brushstroke map');
     end
@@ -340,7 +339,6 @@ for i = 1:nmixgroups
         %hsvcolors = prop2hsv(propsFinal, i*ones(Ncl,1), Wcell,Ycell);
         hsvcolors = rgb2hsv(colFinal);
         [propsFinal,mixtyps] = PredictProportions(hsvcolors,Ycell,Wcell);
-
         colorsFinali = uint8(255*hsv2rgb(prop2hsv(propsFinal,mixtyps,Wcell,Ycell)));
 
         %rgbnew = uint8(255*colFinal);

@@ -6,7 +6,8 @@ pixScle = 4; %увеличение масштаба мм -> пиксель
 antialiasing = 0; %change to 1 if needed
 
 %table with colors
-tablename = 'ModelTable600_.xls';
+%tablename = 'ModelTable600_.xls';
+tablename = 'ModelTable600.xls';
 Ycell = cell(1,4); % 0 1 2 3 = MY1 MY2 CY CM
 Wcell = cell(1,4);
 
@@ -199,9 +200,9 @@ for j=1:N %по списку команд
                 figure(6); %выведем на экран холст с рисующимся изображением
                 imshow(canvas);
 
-%                 if ( j >= 120000)
-%                pause
-%                 end
+%                 if ( j >= 90000)
+%                 pause
+%                  end
 
            case 'PC' %смена цвета
                 waitbar(j/N,hw,['Выполнение команды PLT ',num2str(j)]);
