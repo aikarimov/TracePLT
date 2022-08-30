@@ -20,7 +20,7 @@ tablename = 'ModelTable600.xls';
 
 K = 20;
 
-tol = 0.0; %tolerance of color error in hsv
+tol = 0.2; %tolerance of color error in hsv
 
 sat = @(x) min(max(x, 0), 1); %saturation function
 
@@ -196,9 +196,6 @@ for i = 1:Nhsv
         %test inversion
         hsvinv = prop2hsv(propscur, cls, Wcell,Ycell);
         
-%         rgbcur = hsv2rgb(hsvcolcur);
-%         rgbinv = hsv2rgb(hsvinv);
-%         err = sqrt( (rgbcur - rgbinv)*(rgbcur - rgbinv)');
         h_alt = [hsvinv(1),hsvinv(1) - 1 ]; %alternative versions of h
         [~,I] = min(abs(h_alt - hsvcolcur(1)));
         hsvinv2 = hsvinv;
