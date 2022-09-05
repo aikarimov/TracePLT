@@ -13,7 +13,8 @@ function [hsvcol] = prop2hsv(varargin)
 tablename = 'ModelTable600.xls';
 
 %K = 150;
-K = 250;
+%K = 250;
+K = 8;
 
 sat = @(x) min(max(x, 0), 1); %saturation function
 props = varargin{1,1};
@@ -60,8 +61,9 @@ for i = 1:Npts
     [~,I] = sort(dst,1,'ascend');
 
     %assign weights
-    d = 1./(dst(I(1:K)) + 1e-4);
-    D = diag(d);
+%     d = 1./(dst(I(1:K)) + 1e-4);
+%     D = diag(d);
+    D = eye(K);
 
     hsvcolcur = zeros(1,3);
 

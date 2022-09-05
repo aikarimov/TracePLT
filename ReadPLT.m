@@ -200,10 +200,10 @@ for j=1:N %по списку команд
                 figure(6); %выведем на экран холст с рисующимся изображением
                 imshow(canvas);
 
-%                 if ( j >= 75261)
-% %                 if ( j >= 150944)
-%                      pause
-%                  end
+%                if ( j >= 1155)
+                 if ( j >= 8000)
+                     pause
+                 end
 
            case 'PC' %смена цвета
                 waitbar(j/N,hw,['Выполнение команды PLT ',num2str(j)]);

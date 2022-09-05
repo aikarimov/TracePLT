@@ -18,7 +18,8 @@ function [props, cls, hsvnew] = PredictProportions(varargin)
 % if HSV is matrix, props and cls are N x 3 and N x 1, respectively
 tablename = 'ModelTable600.xls';
 
-K = 20;
+%K = 20;
+K = 14;
 
 tol = 0.2; %tolerance of color error in hsv
 
@@ -58,83 +59,34 @@ props = zeros(Nhsv,3);
 cls = zeros(Nhsv,1);
 hsvarray = zeros(Nhsv,3);
 
-for i = 1:Nhsv
-%     %first, check for consistency - if the color is outside a possible range
-%     tol = 0.1; %tolerance, 1/2 of width of a color stripe
-% 
-%     H = hsvcol(i,1); %take a slice in H
-%     slicepts = [];
-%     Npts = 0;
-%     for k = 1:N %among all points
-%         if abs(Tbl(k,1) - H) <= tol
-%             slicepts = [slicepts; Tbl(k,:)];
-%             Npts = Npts + 1;
-%         end
-%     end
-%     %inside a slice, divide space into quadrants
-%     quads = zeros(1,4);
-%     for k = 1:Npts %among points in a slice
-%         sk = slicepts(k,2);
-%         vk = slicepts(k,3);
-%         s = hsvcol(i,2);
-%         v = hsvcol(i,3);
-% 
-%         if  sk > s
-%             if vk > v
-%                 quads(1) = 1;
-%             else
-%                 quads(4) = 1;
-%             end
-%         else
-%             if vk > v
-%                 quads(2) = 1;
-%             else
-%                 quads(3) = 1;
-%             end
-%         end
-%     end
-%     if sum(quads) < 4 %this means that interpolation is impossible
-%         %take Kp closest points and select mean values
-%         Kp = 10;
-%         dst = sqrt(3)*ones(Npts,1); %distances - taken as maximum range
-%         for k = 1:Npts %among points in a slice
-%             dst(k) = sqrt( (hsvcol(i,:) - slicepts(k,:))*(hsvcol(i,:) - slicepts(k,:))'); %Euclidean distance in (H,S,V) space
-%         end
-%         [~,I] = sort(dst,1,'ascend');
-%         s = mean(slicepts(I(1:Kp),2));
-%         v = mean(slicepts(I(1:Kp),3));
-%         hsvnew(i,2:3) = [s, v]; %modify color
-%     end
-
-%alternative: no check!
-    
+for i = 1:Nhsv   
     hsvnew(i,:) = hsvcol(i,:);
-
-    %then, replace the current color with the accessible one
     hsvcolcur = hsvnew(i,:);
     
-    %make prediction from the closest point
+    %make prediction of class from the Ks closest point
+    Ks = 10;
     dst = sqrt(3)*ones(N,1); %distances - taken as maximum range
     for k = 1:N %among all points
         dst(k) = (hsvcolcur - Tbl(k,:))*(hsvcolcur - Tbl(k,:))'; %squared Euclidean distance in (H,S,V) space
         %dst(k) = abs(hsvcolcur(1) - Tbl(k,1)); %Euclidean distance in H only
     end
-    [~,I] = sort(dst,1,'ascend');
-    clsvect = Clss(I(1));
+    [~,I] = sort(dst,1,'ascend'); %find 
+    clsvect = mode(Clss(I(1:Ks)));
     cls(i) = clsvect;
 
-    %then, find second possible class
-    flag = 1;
-    ctr = 2;
-    class2 = cls(i);
-    while flag
-        if Clss(I(ctr)) ~= cls(i) %if 
-            flag = 0;
-            class2 = Clss(I(ctr)); %this class will be tested if cls(i) is wrong
-        else
-            ctr = ctr + 1;
+    %then, find second possible class: mode of other K closest
+    %points, excluding class y
+    ctr = 1; ctri = 1;
+    class2vect = zeros(K,1);
+    while (ctr <= length(C)) && (ctri <= K)
+        if C(I(ctr)) ~= y %if
+            class2vect(ctri) = C(I(ctr)); %this class will be tested if cls(i) is wrong
+            ctri = ctri + 1;
         end
+        ctr = ctr + 1;
     end
+    class2 = mode(class2vect(1:(ctri-1)));
+
 
     flag = 1; ctr = 1; 
     
@@ -157,15 +109,14 @@ for i = 1:Nhsv
         end
         [~,I] = sort(dst,1,'ascend');
         
-        %assign weights
-        d = 1./dst(I(1:K));
-        D = diag(d);
+        %assign weights - optional
+        %d = 1./dst(I(1:K));
+        %D = diag(d);
 
-        %take first K points
-%         dmax = 2;
-%             [H, T, ~] = PolyRegression(Y(I(1:K),:),W(I(1:K),:),0,dmax,0.01,0.01);
-%             propscur = PolyPredict(hsvcolcur, H, T);%predicted proportions
-        %
+        %for non-weighted regression
+        D = eye(K);
+
+        %take first K points, make linear regression
         for j = 1:3
             X = Y(I(1:K),:);
             E = zeros(K,4); %evaluated polynomial
@@ -175,7 +126,9 @@ for i = 1:Nhsv
                 E = E + h(k,:).*prod(X.^repmat(T(k,:),K,1),2);
             end
             
-            h = (E'*D*E)\(E'*D*W(I(1:K),j)); %WLS
+            delt = 1e-14; %for Tikhonov regularization
+
+            h = (E'*D*E + delt*eye(4))\(E'*D*W(I(1:K),j)); %WLS
 
             %predict proportion
             p = 0;

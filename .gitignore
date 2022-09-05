@@ -1,0 +1,10 @@
+# MATLAB reserve copies
+*.asv
+
+#pictures
+*.png
+*.bmp
+*.eps
+
+#MATLAB figures
+*.fig
