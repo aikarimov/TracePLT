@@ -6,7 +6,7 @@ close all
 
 Hdiv =  0.4; %H value divising magenta-yellow pair into 2 sets
 
-tablename = 'ModelTable600_very_old.xls';
+tablename = 'ModelTable600.xls';
 Ycell = cell(1,4); % 0 1 2 3 = MY1 MY2 CY CM
 Wcell = cell(1,4);
 
