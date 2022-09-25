@@ -30,5 +30,6 @@ for t = 0:1/N:1
         end
     end
 end
-err = abs(mean(canvas_out,3) - double(imggray));
+meancnv = (canvas_out(:,:,1) + canvas_out(:,:,2) + canvas_out(:,:,3))/3;
+err = abs(meancnv - double(imggray));
 end

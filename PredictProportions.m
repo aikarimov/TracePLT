@@ -19,7 +19,7 @@ function [props, cls, hsvnew] = PredictProportions(varargin)
 tablename = 'ModelTable600.xls';
 
 %K = 20;
-K = 14;
+K = 25;
 
 tol = 0.2; %tolerance of color error in hsv
 
@@ -59,10 +59,13 @@ props = zeros(Nhsv,3);
 cls = zeros(Nhsv,1);
 hsvarray = zeros(Nhsv,3);
 
+%matrix wor weighting errors
+M = diag([1, 1/16, 1]);
+
 for i = 1:Nhsv   
     hsvnew(i,:) = hsvcol(i,:);
     hsvcolcur = hsvnew(i,:);
-    
+
     %make prediction of class from the Ks closest point
     Ks = 10;
     dst = sqrt(3)*ones(N,1); %distances - taken as maximum range
@@ -70,25 +73,44 @@ for i = 1:Nhsv
         dst(k) = (hsvcolcur - Tbl(k,:))*(hsvcolcur - Tbl(k,:))'; %squared Euclidean distance in (H,S,V) space
         %dst(k) = abs(hsvcolcur(1) - Tbl(k,1)); %Euclidean distance in H only
     end
-    [~,I] = sort(dst,1,'ascend'); %find 
-    clsvect = mode(Clss(I(1:Ks)));
+    [~,I] = sort(dst,1,'ascend'); %find
+    clvec = Clss(I(1:Ks));
+    %clsvect = mode(clvec);
+    %my faster code for mode
+    classes = zeros(1,4);
+    for j = 1:Ks
+        classes(clvec(j)) = classes(clvec(j)) + 1;
+    end
+    [~,clsvect] = max(classes);
+
+
+
+
     cls(i) = clsvect;
 
     %then, find second possible class: mode of other K closest
     %points, excluding class y
     ctr = 1; ctri = 1;
     class2vect = zeros(K,1);
-    while (ctr <= length(C)) && (ctri <= K)
-        if C(I(ctr)) ~= y %if
-            class2vect(ctri) = C(I(ctr)); %this class will be tested if cls(i) is wrong
+    while (ctr <= length(Clss)) && (ctri <= K)
+        if Clss(I(ctr)) ~= cls(i) %if
+            class2vect(ctri) = Clss(I(ctr)); %this class will be tested if cls(i) is wrong
             ctri = ctri + 1;
         end
         ctr = ctr + 1;
     end
-    class2 = mode(class2vect(1:(ctri-1)));
+    %class2 = mode(class2vect(1:(ctri-1)));
+    %my faster code for mode
+    classes = zeros(1,4);
+    for j = 1:(ctri - 1)
+        classes(class2vect(j)) = classes(class2vect(j)) + 1;
+    end
+    [~,class2] = max(classes);
 
 
-    flag = 1; ctr = 1; 
+    flag = 1; 
+    
+    ctr = 1; 
     
     props0   = zeros(1,3); 
     propscur = zeros(1,3);
@@ -105,16 +127,25 @@ for i = 1:Nhsv
         dst = sqrt(3)*ones(NY,1); %distances - taken as maximum range
         for k = 1:NY %take all points
         %    dst(k) = sqrt( (hsvcolcur - Y(k,:))*(hsvcolcur - Y(k,:))'); %Euclidean distance
-            dst(k) = (hsvcolcur - Y(k,:))*(hsvcolcur - Y(k,:))'; %squared Euclidean distance
+            dst(k) = (hsvcolcur - Y(k,:))*M*(hsvcolcur - Y(k,:))'; %squared Euclidean distance
         end
         [~,I] = sort(dst,1,'ascend');
         
         %assign weights - optional
-        %d = 1./dst(I(1:K));
-        %D = diag(d);
+        d = 1./dst(I(1:K));
+        D = diag(d);
 
         %for non-weighted regression
-        D = eye(K);
+        %D = eye(K);
+
+        %for determining possible color - weighted linear interpolation
+        ds = sqrt(d);
+        hsvpossible = ds'*Y(I(1:K),:)/sum(ds); %linear interpolation
+        al = 0.7;
+        hsvnew(i,:) = (1 - al)*hsvpossible + al*hsvcolcur; %set 0.3 parameter for real color, for expolring the space
+        hsvcolcur = hsvnew(i,:);
+
+        %
 
         %take first K points, make linear regression
         for j = 1:3
@@ -144,7 +175,10 @@ for i = 1:Nhsv
         propscur = sat(propscur);
 
         %comment out, for test!
-        %flag = 0; %go out of the loop
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         flag = 0;
+%         hsvinv = hsvcolcur;
+%         continue; %go out of the loop
 
         %test inversion
         hsvinv = prop2hsv(propscur, cls, Wcell,Ycell);
@@ -153,7 +187,9 @@ for i = 1:Nhsv
         [~,I] = min(abs(h_alt - hsvcolcur(1)));
         hsvinv2 = hsvinv;
         hsvinv2(1) = h_alt(I);
-        err = sqrt( (hsvcolcur - hsvinv2)*(hsvcolcur - hsvinv2)');
+
+        hsvdemanded = hsvcol(i,:);
+        err = sqrt( (hsvdemanded - hsvinv2)*(hsvdemanded - hsvinv2)');
 
         if ctr < 2 
             %if the values are calculated for the first time
@@ -170,15 +206,15 @@ for i = 1:Nhsv
             if err > err0 %if error is greater, return to first variant
                 propscur = props0;
                 cls(i) = clsvect;
-
-                hsvinv = prop2hsv(propscur, cls, Wcell,Ycell);
+                %hsvinv = prop2hsv(propscur, cls, Wcell,Ycell);
             end
             %anyway, go out of the loop
             flag = 0; %go out of the loop
         end
     end
     props(i,:) = propscur;
-    hsvarray(i,:) = hsvinv;%hsvnew(i,:);
+    %hsvarray(i,:) = hsvinv;
+    hsvarray(i,:) = hsvnew(i,:);
 end
 hsvnew = hsvarray;
 end
