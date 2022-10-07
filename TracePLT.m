@@ -493,8 +493,11 @@ title('Final image');
 
 % сохраняем
 flnm = [pathname,filename];
-[filename, path] = uiputfile([flnm(1:end-4),'.plt'],'Save file as...');
-filenameforsave = [path,filename];
+%[filename, path] = uiputfile([flnm(1:end-4),'.plt'],'Save file as...');
+path = pathname; %automatic save
+filenameforsave = [flnm(1:end-4),'.plt'];
+
+%filenameforsave = [path,filename];
 SavePLT_8paints(filenameforsave, map,n,m,canvasW_mm,canvasH_mm, brushWidth_mm);
 
 

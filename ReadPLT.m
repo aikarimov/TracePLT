@@ -38,7 +38,7 @@ canvasColor = 255;
 
 canvas = uint8(canvasColor + zeros(m,n,3));
 canvas2 = uint8(canvasColor + zeros(m,n,3));
-%canvas3 = uint8(canvasColor + zeros(m,n,3)); %canvas for color numeration
+canvas3 = zeros(m,n,3); %canvas for color proportions
 
 canvasprop = zeros(m,n,5); %third dimension: [props,mixtype,colnumber]
 
@@ -148,7 +148,7 @@ for j=1:N %по списку команд
                                 else
                                     if r2 <= bsQuad %core of the line (bs2)^2
                                         canvas(Xl,Yl,:) = color;
-                                        %canvas3(Xl,Yl,:) = codecolor;
+                                        canvas3(Xl,Yl,:) = props;
                                         canvasprop(Xl,Yl,:) = [props,mixtype,colctr];
                                     end
                                 end
@@ -197,13 +197,17 @@ for j=1:N %по списку команд
                 
                 figure(7); %выведем на экран холст мазков
                 imshow(canvas2);
+
                 figure(6); %выведем на экран холст с рисующимся изображением
                 imshow(canvas);
 
-%                if ( j >= 1155)
-                 if ( j >= 8000)
-                     pause
-                 end
+                figure(8); %выведем на экран холст пропорций
+                imshow(canvas3);
+
+                 if ( j >= 87199)
+ %                if ( j >= 139012)
+                      pause
+                  end
 
            case 'PC' %смена цвета
                 waitbar(j/N,hw,['Выполнение команды PLT ',num2str(j)]);
@@ -232,6 +236,8 @@ figure(7);
 imshow(canvas2); %выведем на экран холст мазков
 figure(6);
 imshow(canvas);%выведем на экран холст с готовым изображением
+figure(8); %выведем на экран холст пропорций
+imshow(canvas3);
 
 figure(14);
 histogram(strokelengths,100);

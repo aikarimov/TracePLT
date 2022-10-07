@@ -14,7 +14,8 @@ tablename = 'ModelTable600.xls';
 
 %K = 150;
 %K = 250;
-K = 8;
+K = 14;
+%K = 30; %for second order
 
 sat = @(x) min(max(x, 0), 1); %saturation function
 props = varargin{1,1};
@@ -61,9 +62,9 @@ for i = 1:Npts
     [~,I] = sort(dst,1,'ascend');
 
     %assign weights
-%     d = 1./(dst(I(1:K)) + 1e-4);
-%     D = diag(d);
-    D = eye(K);
+     d = 1./(dst(I(1:K)) + 1e-4);
+     D = diag(d);
+%     D = eye(K);
 
     hsvcolcur = zeros(1,3);
 
@@ -72,7 +73,10 @@ for i = 1:Npts
          1     0     0;
          0     1     0;
          0     0     1]; %deglexord(0,1,3);
-    
+
+%     T = deglexord(0,2,3);
+%     [N,~] = size(T);
+
     %take first K points
     K = min(NY,K); %decrease K if needed
     X = Y(I(1:K),:);
@@ -87,7 +91,7 @@ for i = 1:Npts
     for j = 1:3
         V = W(I(1:K),j);
         %h = (E'*E)\(E'*V); %OLS
-        h = (E'*D*E + 1e-16)\(E'*D*V); %WLS
+        h = (E'*D*E + 1e-4*eye(N))\(E'*D*V); %WLS
         %predict proportion
         p = 0;
         x = props(i,:);
