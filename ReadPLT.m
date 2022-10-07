@@ -203,11 +203,11 @@ for j=1:N %по списку команд
 
                 figure(8); %выведем на экран холст пропорций
                 imshow(canvas3);
-
-                 if ( j >= 87199)
- %                if ( j >= 139012)
-                      pause
-                  end
+% 
+%                  if ( j >= 87199)
+%  %                if ( j >= 139012)
+%                       pause
+%                   end
 
            case 'PC' %смена цвета
                 waitbar(j/N,hw,['Выполнение команды PLT ',num2str(j)]);
